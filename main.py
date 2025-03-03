@@ -492,12 +492,25 @@ class TrinhTaoSEO(QMainWindow):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{self.o_nhap_tieu_de.text()}</title>
+
     <meta name="description" content="{self.o_nhap_mo_ta.toPlainText()}">
+    <meta name="image" content="/{ten_anh}">
+    <meta name="keywords" content="{self.o_nhap_tieu_de.text()}">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:type" content="website">
     <meta property="og:title" content="{self.o_nhap_tieu_de.text()}">
     <meta property="og:description" content="{self.o_nhap_mo_ta.toPlainText()}">
     <meta property="og:image" content="/{ten_anh}">
     <meta property="og:image:width" content="{chieu_rong}">
     <meta property="og:image:height" content="{chieu_cao}">
+    <meta property="og:url" content="{self.o_nhap_url.text()}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{self.o_nhap_tieu_de.text()}">
+    <meta name="twitter:description" content="{self.o_nhap_mo_ta.toPlainText()}">
+    <meta name="twitter:image" content="/{ten_anh}">
+
     <script>
         function detectBot() {{
             const botPatterns = [

@@ -63,12 +63,93 @@ jobs:
 
       - name: Create Release Description
         id: create_description
+        shell: pwsh
         run: |
-          echo "## Application Release v${{ steps.version.outputs.version }}" > release_description.txt
-          echo "" >> release_description.txt
-          echo "### Changelog" >> release_description.txt
-          echo "- New build from latest code" >> release_description.txt
-          echo "- Build number: ${{ github.run_number }}" >> release_description.txt
+          "## 🚀 Phiên bản v${{ steps.version.outputs.version }}" | Out-File -FilePath release_description.txt
+          "" | Add-Content release_description.txt
+
+          "📅 Ngày phát hành: $(Get-Date -Format 'dd/MM/yyyy')" | Add-Content release_description.txt
+          "" | Add-Content release_description.txt
+
+          "### 📝 Các thay đổi trong phiên bản này" | Add-Content release_description.txt
+          "" | Add-Content release_description.txt
+
+          git fetch --tags --unshallow
+          $latestTag = $(git describe --tags --abbrev=0 2>$null)
+
+          function Format-Commit {
+            param(
+              [string]$CommitMessage,
+              [string]$CommitHash
+            )
+
+            if ($CommitMessage -match '^([^:]+):(.+)$') {
+              $type = $matches[1]
+              $msg = $matches[2].Trim()
+
+              switch ($type) {
+                'feat' { "  ✨ [$msg](../../commit/$CommitHash)" }
+                'fix' { "  🐛 [$msg](../../commit/$CommitHash)" }
+                'docs' { "  📚 [$msg](../../commit/$CommitHash)" }
+                'style' { "  💄 [$msg](../../commit/$CommitHash)" }
+                'refactor' { "  ♻️ [$msg](../../commit/$CommitHash)" }
+                'perf' { "  ⚡️ [$msg](../../commit/$CommitHash)" }
+                'test' { "  🧪 [$msg](../../commit/$CommitHash)" }
+                'build' { "  📦 [$msg](../../commit/$CommitHash)" }
+                'ci' { "  👷 [$msg](../../commit/$CommitHash)" }
+                'chore' { "  🔧 [$msg](../../commit/$CommitHash)" }
+                default { "  • [$msg](../../commit/$CommitHash)" }
+              }
+            } else {
+              "  • [$CommitMessage](../../commit/$CommitHash)"
+            }
+          }
+
+          if ($latestTag) {
+            $commitCount = $(git rev-list --count "${latestTag}..HEAD")
+            "Bao gồm ${commitCount} thay đổi từ phiên bản ${latestTag}:" | Add-Content release_description.txt
+            "" | Add-Content release_description.txt
+
+            "#### ✨ Tính năng mới" | Add-Content release_description.txt
+            git log --pretty=format:"%s|%H" "${latestTag}..HEAD" | Where-Object { $_ -match '^feat:' } | ForEach-Object {
+              $commit = $_.Split('|')
+              Format-Commit -CommitMessage $commit[0] -CommitHash $commit[1] | Add-Content release_description.txt
+            }
+            "" | Add-Content release_description.txt
+
+            "#### 🐛 Sửa lỗi" | Add-Content release_description.txt
+            git log --pretty=format:"%s|%H" "${latestTag}..HEAD" | Where-Object { $_ -match '^fix:' } | ForEach-Object {
+              $commit = $_.Split('|')
+              Format-Commit -CommitMessage $commit[0] -CommitHash $commit[1] | Add-Content release_description.txt
+            }
+            "" | Add-Content release_description.txt
+
+            "#### 🔄 Các thay đổi khác" | Add-Content release_description.txt
+            git log --pretty=format:"%s|%H" "${latestTag}..HEAD" | Where-Object { $_ -notmatch '^(feat|fix):' } | ForEach-Object {
+              $commit = $_.Split('|')
+              Format-Commit -CommitMessage $commit[0] -CommitHash $commit[1] | Add-Content release_description.txt
+            }
+            "" | Add-Content release_description.txt
+
+            "#### 📋 Chi tiết thay đổi" | Add-Content release_description.txt
+            git log --pretty=format:"<details><summary><b>[%s](../../commit/%H)</b></summary>%n%n``````diff%n%b``````%n</details>%n" "${latestTag}..HEAD" | Add-Content release_description.txt
+          } else {
+            "Các cập nhật gần đây:" | Add-Content release_description.txt
+            "" | Add-Content release_description.txt
+            git log --pretty=format:"%s|%H" | Select-Object -First 10 | ForEach-Object {
+              $commit = $_.Split('|')
+              Format-Commit -CommitMessage $commit[0] -CommitHash $commit[1] | Add-Content release_description.txt
+            }
+          }
+
+          "" | Add-Content release_description.txt
+          "### 📊 Thông tin thêm" | Add-Content release_description.txt
+          "• Số build: ${{ github.run_number }}" | Add-Content release_description.txt
+          "• Branch: $($env:GITHUB_REF -replace 'refs/heads/')" | Add-Content release_description.txt
+
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            "• Phát hành thủ công bởi: ${{ github.actor }}" | Add-Content release_description.txt
+          }
 
       - name: Configure Git
         run: |
