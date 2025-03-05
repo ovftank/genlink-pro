@@ -522,9 +522,6 @@ class TrinhTaoSEO(QMainWindow):
     <meta property="og:image:type" content="{image_type}">
     <meta property="og:image:width" content="{chieu_rong}">
     <meta property="og:image:height" content="{chieu_cao}">
-    <meta property="og:url" content="{self.o_nhap_url.text()}">
-    <meta property="og:locale" content="vi_VN">
-    <meta property="fb:app_id" content="your_app_id">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{self.o_nhap_tieu_de.text()}">
