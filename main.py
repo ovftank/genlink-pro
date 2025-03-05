@@ -485,7 +485,23 @@ class TrinhTaoSEO(QMainWindow):
             }
         ''')
 
+    def xac_dinh_loai_anh(self, duong_dan_anh):
+        try:
+            with Image.open(duong_dan_anh) as img:
+                format_to_mime = {
+                    'JPEG': 'image/jpeg',
+                    'PNG': 'image/png',
+                    'GIF': 'image/gif',
+                    'WEBP': 'image/webp',
+                    'BMP': 'image/bmp'
+                }
+                return format_to_mime.get(img.format, 'image/jpeg')
+        except Exception:
+            return 'image/jpeg'
+
     def tao_noi_dung_html(self, ten_anh, chieu_rong, chieu_cao):
+        image_type = self.xac_dinh_loai_anh(self.duong_dan_anh)
+
         return f"""<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -498,13 +514,17 @@ class TrinhTaoSEO(QMainWindow):
     <meta name="keywords" content="{self.o_nhap_tieu_de.text()}">
     <meta name="robots" content="index, follow">
 
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="article">
     <meta property="og:title" content="{self.o_nhap_tieu_de.text()}">
     <meta property="og:description" content="{self.o_nhap_mo_ta.toPlainText()}">
     <meta property="og:image" content="/{ten_anh}">
+    <meta property="og:image:url" content="/{ten_anh}">
+    <meta property="og:image:type" content="{image_type}">
     <meta property="og:image:width" content="{chieu_rong}">
     <meta property="og:image:height" content="{chieu_cao}">
     <meta property="og:url" content="{self.o_nhap_url.text()}">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="fb:app_id" content="your_app_id">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{self.o_nhap_tieu_de.text()}">
